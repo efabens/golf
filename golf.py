@@ -65,10 +65,7 @@ for p in players:
         total = 'WD'
         through = ''
         today = ''
-    try:
-        printable = "{pos:<4} {name:<20} {total:<5} {through:<3} {today:>3}".format(pos=pos, name=name, total=total,
-                                                                                    today=today,
-                                                                                    through=through)
-        print(printable)
-    except TypeError:
-        print("hello")
+    printable = "{pos:<4} {name:<20} {total:<5} {through:<3} {today:>3}".format(pos=pos, name=name, total=total,
+                                                                                today=today,
+                                                                                through=through)
+    print(printable)
