@@ -1,0 +1,11 @@
+PGA Tour, the number is the tournament number and the year number is the year. Getting the tournament number automatically is a second step that I need to figure out
+https://statdata.pgatour.com/r/475/2018/leaderboard-v2mini.json
+https://statdata.pgatour.com/r/current/leaderboard-v2.json
+This is the full schedule, it probably only needs to be grabbed once per year but it might be easier to grab it weekly instead
+https://statdata.pgatour.com/r/475/2018/leaderboard-v2mini.json
+
+
+https://statdata.pgatour.com/r/current/schedule-v2.json
+https://www.pgatour.com/content/dam/pgatour/json/tournament/course.json
+https://statdata.pgatour.com/r/470/2018/leaderboard_mp.json
+https://statdata.pgatour.com/r/470/2018/message.json
