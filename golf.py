@@ -16,7 +16,7 @@ def getFormatted(p, has_cut, cut, cur_round):
         print(cut_line)
 
     # if started on back 9
-    start_hole = p['start_hole'] == 10
+    start_hole = p['start_hole'] != 1
     through = p['thru']
 
     if today is None:
@@ -32,7 +32,7 @@ def getFormatted(p, has_cut, cut, cur_round):
         total = 'WD'
         through = ''
         today = ''
-    if total >= 0:
+    elif total >= 0:
         total = " " + str(total)
     printable = "{pos:<4} {name:<20} {total:<5} {through:<3} {today:>3}".format(pos=pos, name=name, total=total,
                                                                                 today=today,
@@ -41,7 +41,7 @@ def getFormatted(p, has_cut, cut, cur_round):
 
 
 def process(args):
-    top = get('https://statdata.pgatour.com/r/current/leaderboard-v2.json').json()
+    top = get('https://statdata.pgatour.com/r/' + args.t_string + '/leaderboard-v2.json').json()
     leaders = top['leaderboard']
 # Potential values we will want to use from leaders
 # 'tournament_id', 'tournament_name', 'start_date', 'end_date', 'in_cup', 'is_started', 'is_finished', 'current_round',
@@ -81,9 +81,10 @@ def process(args):
             if i['thru'] is None:
                 i['thru'] = 0
         players = sorted(players, key=lambda p: p['thru'], reverse=True)
+        has_cut = True
     elif args.sortField[0] == 'r':
-        players = sorted(players, key=lambda p: p['thru'] if p['thru'] is not None else 900)
-
+        players = sorted(players, key=lambda p: p['today'] if p['today'] is not None else 900)
+        has_cut = True
     for p in players:
         printable, has_cut = getFormatted(p, has_cut, cut, cur_round)
 
@@ -95,4 +96,6 @@ if __name__ == '__main__':
     parser = ArgumentParser(description="prints out golf standings. All data sourced from pgatour.com")
     parser.add_argument('-s', '--sort', dest="sortField", default="pos", help="Provides basic sort functionality. "
                         "Choices are 'thru', 'pos', and 'round'. defaults to 'pos'")
+    parser.add_argument('-t', '--tournament', dest="t_string", default="current", help="Allows override of tournament "
+                        "value. Defaults to current, but it can be overridden with '[tourn_id]/[year]'")
     players = process(parser.parse_args())
