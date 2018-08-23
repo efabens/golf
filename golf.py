@@ -1,6 +1,7 @@
 from requests import get
 from datetime import datetime
 from argparse import ArgumentParser
+from schedule import thisWeek, printTourney, getTourneyIdYear
 
 
 def getFormatted(p, has_cut, cut, cur_round):
@@ -40,8 +41,8 @@ def getFormatted(p, has_cut, cut, cur_round):
     return printable, has_cut
 
 
-def process(args):
-    top = get('https://statdata.pgatour.com/r/' + args.t_string + '/leaderboard-v2.json').json()
+def process(args, tournament_id_year):
+    top = get('https://statdata.pgatour.com/r/' + tournament_id_year + '/leaderboard-v2.json').json()
     leaders = top['leaderboard']
 # Potential values we will want to use from leaders
 # 'tournament_id', 'tournament_name', 'start_date', 'end_date', 'in_cup', 'is_started', 'is_finished', 'current_round',
@@ -96,6 +97,14 @@ if __name__ == '__main__':
     parser = ArgumentParser(description="prints out golf standings. All data sourced from pgatour.com")
     parser.add_argument('-s', '--sort', dest="sortField", default="pos", help="Provides basic sort functionality. "
                         "Choices are 'thru', 'pos', and 'round'. defaults to 'pos'")
-    parser.add_argument('-t', '--tournament', dest="t_string", default="current", help="Allows override of tournament "
-                        "value. Defaults to current, but it can be overridden with '[tourn_id]/[year]'")
-    players = process(parser.parse_args())
+    parser.add_argument('-w', '--week', dest="week_t", default=False, action='store_true', help="Lists the tournaments "
+                        "and IDs that are occuring this week, when passed in leaderboard is not shown")
+    parser.add_argument('-t', '--tournament', dest="t_index", default=0, help="Allows override of tournament "
+                        "value. Defaults to index 0 from --week, but it can be overridden with different indexes")
+
+    args = parser.parse_args()
+    if args.week_t:
+        printTourney()
+    else:
+        tournament = getTourneyIdYear(args.t_index)
+        players = process(args, tournament)
