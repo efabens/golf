@@ -1,7 +1,7 @@
 from requests import get
 from datetime import datetime
 from argparse import ArgumentParser
-from schedule import thisWeek, printTourney, getTourneyIdYear
+from schedule import printTourney, getTourneyIdYear
 
 
 def getFormatted(p, has_cut, cut, cur_round):
@@ -10,6 +10,8 @@ def getFormatted(p, has_cut, cut, cur_round):
     pos = p['current_position']
     today = p['today']
     total = p['total']
+
+
 
     if not has_cut and (cut['show_projected'] or cut['show_cut_line']) and total > cut['cut_line_score']:
         has_cut = True
@@ -23,14 +25,26 @@ def getFormatted(p, has_cut, cut, cur_round):
     if today is None:
         today = ''
         tee_time = [i['tee_time'] for i in p['rounds'] if i['round_number'] == cur_round][0]
-        through = datetime.strptime(tee_time, '%Y-%m-%dT%H:%M:%S').strftime('%-I:%M%p')
+        try:
+            through = datetime.strptime(tee_time, '%Y-%m-%dT%H:%M:%S').strftime('%-I:%M%p')
+        except TypeError:
+            through = None
     if through == 18:
         through = 'F'
     if start_hole:
         through = str(through) + '*'
     if p['status'] == 'wd':
         pos = 'WD'
-        total = 'WD'
+        total = ''
+        through = ''
+        today = ''
+    elif p['status'] == 'cut':
+        pos = 'CUT'
+        through = ''
+        today = ''
+    elif p['status'] == 'dq':
+        pos = 'DQ'
+        total = ''
         through = ''
         today = ''
     elif total >= 0:
@@ -76,7 +90,7 @@ def process(args, tournament_id_year):
     print("{pos:4<} {name:<20} {total:<5} {through:<4} {today}".format(pos='Pos', name='Player Name', total='Total',
                                                                        through='Thru',
                                                                        today='Round'))
-    has_cut = False
+    has_cut = any([p['status']=='cut' for p in players])
     if args.sortField[0] == 't':
         for i in players:
             if i['thru'] is None:
