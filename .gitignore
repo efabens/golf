@@ -1,2 +1,4 @@
-env/
+.idea
 *.jpg
+env/
+__pycache__/

@@ -56,7 +56,11 @@ def getFormatted(p, has_cut, cut, cur_round):
 
 
 def process(args, tournament_id_year):
-    top = get('https://statdata.pgatour.com/r/' + tournament_id_year + '/leaderboard-v2.json').json()
+    try:
+        top = get('https://statdata.pgatour.com/r/' + tournament_id_year + '/leaderboard-v2.json').json()
+    except ValueError:
+        print("Provided tournament ID did not work, defaulting to current")
+        top = get('https://statdata.pgatour.com/r/current/leaderboard-v2.json').json()
     leaders = top['leaderboard']
 # Potential values we will want to use from leaders
 # 'tournament_id', 'tournament_name', 'start_date', 'end_date', 'in_cup', 'is_started', 'is_finished', 'current_round',
@@ -115,10 +119,16 @@ if __name__ == '__main__':
                         "and IDs that are occuring this week, when passed in leaderboard is not shown")
     parser.add_argument('-t', '--tournament', dest="t_index", default=0, help="Allows override of tournament "
                         "value. Defaults to index 0 from --week, but it can be overridden with different indexes")
+    parser.add_argument('-c', '--current', dest="current", default=False, action='store_true', help="Sets the "
+                        "tournament value to 'curent' this. This is usually the most high profile tournament of the "
+                        "week. This is also the fallback state of the program if the spcified tournament id doesn't "
+                        "work, which sometimes occurs early in the week.")
 
     args = parser.parse_args()
     if args.week_t:
         printTourney()
-    else:
+    elif not args.current:
         tournament = getTourneyIdYear(args.t_index)
         players = process(args, tournament)
+    else:
+        players = process(args, 'current')
