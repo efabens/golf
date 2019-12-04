@@ -9,3 +9,10 @@ https://statdata.pgatour.com/r/current/schedule-v2.json
 https://www.pgatour.com/content/dam/pgatour/json/tournament/course.json
 https://statdata.pgatour.com/r/470/2018/leaderboard_mp.json
 https://statdata.pgatour.com/r/470/2018/message.json
+
+how to build
+pyinstaller --onefile golf.py
+
+
+this is a way to highlight a given golfer
+golf| head -70 |sed -E "s/^.*Woods.*$/"$'\033\[48;2;255;0;0m&\033\[0m/g'
