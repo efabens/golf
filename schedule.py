@@ -1,4 +1,5 @@
 from requests import get
+from datetime import datetime
 
 
 def thisWeek():
@@ -9,12 +10,16 @@ def thisWeek():
     # tournaments but as this is a project that I iterate on as I remember, I am not too concerned, no one cares about
     # new years tournaments.
     years = schedule['years'][0]
-    tourns = years['tours'][0]['trns']
-    thisWeek = [i for i in tourns if i['date']['weekNumber'] == weekNum]
-    if len(thisWeek) == 0:
-        years = schedule['years'][1]
+
+    for years in schedule['years']:
         tourns = years['tours'][0]['trns']
-        thisWeek = [i for i in tourns if i['date']['weekNumber'] == weekNum]
+        thisWeek = [i for i in tourns if i['date']['weekNumber'] == weekNum and
+                    abs((datetime.strptime(i['date']['start'], "%Y-%m-%d") - datetime.now()).days) < 20]
+        # print(thisWeek)
+    # if len(thisWeek) == 0:
+    #     years = schedule['years'][1]
+    #     tourns = years['tours'][0]['trns']
+    #     thisWeek = [i for i in tourns if i['date']['weekNumber'] == weekNum]
     return thisWeek
 
 
@@ -36,6 +41,7 @@ def getTourneyIdYear(index):
     except (IndexError, TypeError):
         tournament = curWeek[0]
     number = tournament['permNum']
-    year = tournament['date']['end'][:4]
-    # year = tournament['year']
-    return number + '/' + year
+    year = tournament['year']
+    code = year + "/r/" + number
+    return code, tournament
+    # return number + '/' + year

@@ -6,16 +6,14 @@ from utility import custom_background, ENDC, custom_text_color
 
 
 def getFormatted(p, has_cut, cut, cur_round):
-    bio = p['player_bio']
-    if bio["is_amateur"]:
-        amateur = " (a)"
-    else:
-        amateur = ""
-    name = f"{bio['first_name']} {bio['last_name']}{amateur}"
-    pos = p['current_position']
-    today = p['today']
+    # print(p)
+    bio = p['playerNames']
+    name = f"{bio['firstName']} {bio['lastName']}{bio['playerNameAddOns']}"
+    pos = p['positionCurrent']
+    today = p['round']
     total = p['total']
 
+    # cut_line_score is potentially a string now and therefore this could have some problems
     if not has_cut and (cut['show_projected'] or cut['show_cut_line']) and total > cut['cut_line_score']:
         has_cut = True
         cut_line = '-' * 20 + ' Projected Cut ' + \
@@ -23,7 +21,7 @@ def getFormatted(p, has_cut, cut, cur_round):
         print(cut_line)
 
     # if started on back 9
-    start_hole = p['start_hole'] != 1
+    start_hole = p['startingHoleId'] != '1'
     through = p['thru']
 
     if today is None:
@@ -35,6 +33,8 @@ def getFormatted(p, has_cut, cut, cur_round):
                 tee_time, '%Y-%m-%dT%H:%M:%S').strftime('%-I:%M%p')
         except TypeError:
             through = None
+    if today == 'E':
+        today = " 0"
     if through == 18:
         through = 'F'
     if start_hole:
@@ -53,7 +53,7 @@ def getFormatted(p, has_cut, cut, cur_round):
         total = ''
         through = ''
         today = ''
-    elif total >= 0:
+    elif total == '0':
         total = " " + str(total)
     printable = "{pos:<4} {name:<20} {total:<5} {through:<4} {today}".format(pos=pos, name=name, total=total,
                                                                              today=today,
@@ -63,37 +63,38 @@ def getFormatted(p, has_cut, cut, cur_round):
 
 def get_leader_json(tournament_id_year):
     try:
-        top = get('https://statdata.pgatour.com/r/' +
-                  tournament_id_year + '/leaderboard-v2.json').json()
+        url = 'https://lbdata.pgatour.com/' + tournament_id_year + '/leaderboard.json'
+        top = get(url).json()
     except ValueError:
         print("Provided tournament ID did not work, defaulting to current")
         top = get(
             'https://statdata.pgatour.com/r/current/leaderboard-v2.json').json()
-    return top['leaderboard']
+    # return top['leaderboard']
+    return top
 
 
-def process(args, leaders):
+def process(args, leaders, tournament):
 
     # Potential values we will want to use from leaders
     # 'tournament_id', 'tournament_name', 'start_date', 'end_date', 'in_cup', 'is_started', 'is_finished', 'current_round',
     # 'round_state', 'in_playoff', 'courses', 'cut_line', 'players'
-
     # started = leaders['is_started']
     # finished = leaders['is_finished']
-    cur_round = leaders['current_round']
+    cur_round = leaders['tournamentRoundId']
     # round_state = leaders['round_state']
-    name = leaders['tournament_name']
+    name = tournament['trnName']['medium']
     # start_date = leaders['start_date']
     # end_date = leaders['end_date']
-    cut = leaders['cut_line']
-    course = leaders['courses'][0]
+    cut = leaders['cutLines'][0]
+    course = tournament['courses'][0]['courseName']
+
     # 'course_name', 'par_in', 'par_out', 'par_total', 'distance_in', 'distance_out', 'distance_total', 'holes'
 
     # this is a list each item being a hole. This is probably a v2 process to figure out what I might want to do
     # holes = course['holes']
 
     # players is a list, with a butt ton of data we probably don't care about and a little we do
-    players = leaders['players']
+    players = leaders['rows']
     # possible fields to hold onto
     # 'player_id', 'player_bio', 'current_position', 'start_position', 'status', 'thru', 'back9', 'start_hole',
     # 'current_round', 'course_hole', 'today', 'total', 'wildcard', 'total_strokes', 'rounds', 'holes',
@@ -101,7 +102,7 @@ def process(args, leaders):
     # 'rankings', 'par_performance', 'group_id'
 
     print(name)
-    print(course['course_name'])
+    print(course)
     print('')
     print("{pos:4<} {name:<20} {total:<5} {through:<4} {today}".format(pos='Pos', name='Player Name', total='Total',
                                                                        through='Thru',
@@ -285,10 +286,10 @@ if __name__ == '__main__':
     if args.week_t:
         printTourney()
     else:
-        tournament = getTourneyIdYear(args.t_index)
-        top = get_leader_json(tournament)
+        tournamentCode, tournament = getTourneyIdYear(args.t_index)
+        top = get_leader_json(tournamentCode)
         if not args.p_score:
-            process(args, top)
+            process(args, top, tournament)
         else:
             card = score_card(args.p_score, top, tournament)
 
